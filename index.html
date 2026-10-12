@@ -241,11 +241,35 @@ function copyText(t,btn){
 function postsView(){
   const sorted=[...DB.posts].sort((a,b)=>(b.forDate||"").localeCompare(a.forDate||"")).slice(0,20);
   return `<div class="card"><h2>✍️ Post Generator</h2>
+  <p class="desc">Enter your topic once and fill your entire week: every day's post written out, plus which gamification to run that day.</p>
+  <button class="btn" onclick="fillSkoolWeek()" style="margin-top:8px">🪄 Fill My Week (7 Days of Posts)</button>
+  <div id="fillSkoolArea"></div></div>
+  <div class="card"><h2>+ Single Post</h2>
   <p class="desc">${DB.groqKey?"Real AI writing for your niche.":"Add a Groq key in settings for real AI, or use smart templates."}</p>
   <label>Post type</label><select id="ptType"><option value="daily">📌 Daily Post</option><option value="engage">💬 Engagement Bait</option><option value="value">💎 Value Drop</option><option value="promo">🚀 Promo / Announcement</option></select>
   <button class="btn" onclick="genPost()">🤖 Generate Post</button><div id="genPost"></div></div>
   <div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:16px 4px 10px;text-transform:uppercase;letter-spacing:1px">Recent posts (${sorted.length})</div>
-  ${sorted.map(p=>`<div class="post"><span class="p-type ${POST_TYPES[p.type].color}">${POST_TYPES[p.type].label}</span> <span style="font-size:.75rem;color:var(--muted)">${p.forDate?fmtDate(p.forDate):""}</span><div class="p-body">${esc(p.body)}</div><div class="p-actions"><button class="btn copy small" onclick='copyText(${JSON.stringify(p.body)},this)'>📋 Copy</button><button class="btn ghost small" onclick="delPost('${p.id}')">Delete</button></div></div>`).join("")||'<div class="empty">No posts yet. Generate one above!</div>'}`;
+  ${sorted.map(p=>`<div class="post"><span class="p-type ${POST_TYPES[p.type].color}">${POST_TYPES[p.type].label}</span> <span style="font-size:.75rem;color:var(--muted)">${p.forDate?fmtDate(p.forDate):""}</span>${p.game?`<div style="font-size:.78rem;color:#c4b5fd;margin:6px 0">🎮 Game that day: <b>${esc(p.game)}</b></div>`:""}<div class="p-body">${esc(p.body)}</div><div class="p-actions"><button class="btn copy small" onclick='copyText(${JSON.stringify(p.body)},this)'>📋 Copy</button><button class="btn ghost small" onclick="delPost('${p.id}')">Delete</button></div></div>`).join("")||'<div class="empty">No posts yet. Hit "Fill My Week" above!</div>'}`;
+}
+async function fillSkoolWeek(){
+  const area=document.getElementById("fillSkoolArea");
+  area.innerHTML=`<div style="text-align:center;padding:16px"><div class="ai-badge">🤖 ${DB.groqKey?"AI writing your week":"Smart builder"}</div><div class="spinner"></div><p class="desc">Writing 7 days of posts...</p></div>`;
+  const topic=DB.topic;
+  const types=["daily","engage","value","daily","engage","value","promo"];
+  const games=["🔥 Daily check-in streak","💬 Comment challenge","🎯 Accountability post","🏆 Weekend wins thread","❓ AMA prompt","📸 Show your work","🚀 Promo + testimonial ask"];
+  const d=new Date();
+  // clear old auto-filled week posts (keep manual ones)
+  DB.posts=DB.posts.filter(p=>!p.autoWeek);
+  for(let i=0;i<7;i++){
+    const dt=new Date(d);dt.setDate(dt.getDate()+i);
+    const dateStr=dt.toISOString().slice(0,10);
+    const type=types[i];
+    let body=await aiGen(`You write engaging Skool community posts. Short, conversational, emojis ok. No hashtags. Under 150 words.`,
+      `Write a ${type} post for a Skool community about "${topic}". This is day ${i+1} of a 7-day content plan. Make it feel fresh, not repetitive.`);
+    if(!body)body=localPost(type);
+    DB.posts.push({id:Date.now().toString()+i,type,body,forDate:dateStr,used:false,autoWeek:true,game:games[i]});
+  }
+  save();render();
 }
 async function genPost(){
   const area=document.getElementById("genPost");
