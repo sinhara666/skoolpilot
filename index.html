@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkoolPilot - Community Command Center</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0c0f1a;--accent:#fbbf24;--accent2:#f97316;--purple:#a78bfa;--text:#f5f3ff;--muted:#9a93b5;--green:#4ade80;--red:#f87171;--blue:#38bdf8}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:18px 14px 40px;max-width:640px;margin:0 auto;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse 90% 40% at 50% -5%,rgba(251,191,36,.1) 0%,transparent 60%),radial-gradient(circle at 90% 90%,rgba(167,139,250,.07) 0%,transparent 45%),#0c0f1a;pointer-events:none}
+.hidden{display:none!important}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.hdr{text-align:center;padding:10px 0 18px;animation:fadeUp .5s ease}
+.logo{font-size:1.9rem;font-weight:900;letter-spacing:-1px}
+.logo .s{background:linear-gradient(135deg,#fbbf24,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo .p{background:linear-gradient(135deg,#a78bfa,#f0a6d8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tag{font-size:.82rem;color:var(--muted);margin-top:4px}
+.comm-badge{display:inline-block;margin-top:8px;padding:6px 16px;background:linear-gradient(135deg,rgba(251,191,36,.18),rgba(251,191,36,.05));border:1px solid rgba(251,191,36,.4);border-radius:20px;font-size:.82rem;font-weight:700;color:#fcd34d}
+.tabs{display:flex;gap:6px;margin-bottom:16px;padding:4px;background:rgba(255,255,255,.035);border-radius:16px;border:1px solid rgba(255,255,255,.06);overflow-x:auto}
+.tabs button{flex:1;min-width:62px;margin:0;padding:11px 4px;font-size:.76rem;font-weight:700;background:transparent;border:none;color:var(--muted);border-radius:12px;cursor:pointer;transition:all .25s;white-space:nowrap}
+.tabs button.active{background:linear-gradient(135deg,#d97706,#7c3aed);color:#fff;box-shadow:0 4px 18px rgba(217,119,6,.4)}
+.card{background:linear-gradient(165deg,rgba(255,255,255,.05),rgba(255,255,255,.015));border:1px solid rgba(251,191,36,.16);border-radius:20px;padding:18px;margin-bottom:14px;backdrop-filter:blur(12px);box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.07);animation:fadeUp .4s ease}
+.card h2{font-size:1.02rem;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,#fbbf24,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.card p.desc{font-size:.85rem;color:var(--muted);line-height:1.55;margin-bottom:8px}
+label{display:block;font-size:.74rem;font-weight:700;color:var(--muted);margin:12px 0 5px;text-transform:uppercase;letter-spacing:.7px}
+input,select,textarea{width:100%;padding:12px 14px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.35);color:var(--text);font-size:.95rem;transition:border .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(251,191,36,.15)}
+textarea{resize:vertical;min-height:70px}
+.btn{width:100%;margin-top:14px;padding:14px;border:none;border-radius:16px;background:linear-gradient(135deg,#d97706,#7c3aed);color:#fff;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 8px 28px rgba(217,119,6,.35),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .15s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);color:var(--muted);box-shadow:none}
+.btn.small{width:auto;padding:9px 20px;font-size:.84rem;margin:10px 8px 0 0;border-radius:12px}
+.btn.copy{background:linear-gradient(135deg,#4c1d95,#6d28d9);box-shadow:0 6px 20px rgba(109,40,217,.35)}
+.row2{display:flex;gap:10px}.row2>div{flex:1}
+.empty{text-align:center;color:var(--muted);padding:24px 0;font-size:.9rem}
+.back{background:none;border:none;color:#fcd34d;font-size:.92rem;font-weight:700;cursor:pointer;padding:0;margin:0 0 14px;box-shadow:none;width:auto}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.stat{background:linear-gradient(165deg,rgba(255,255,255,.06),rgba(255,255,255,.015));border:1px solid rgba(251,191,36,.16);border-radius:18px;padding:16px;text-align:center;backdrop-filter:blur(10px);box-shadow:0 6px 24px rgba(0,0,0,.28);animation:fadeUp .4s ease}
+.stat .num{font-size:1.55rem;font-weight:800;background:linear-gradient(135deg,#fbbf24,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat .num.green{background:linear-gradient(135deg,#4ade80,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat .num.purple{background:linear-gradient(135deg,#a78bfa,#f0a6d8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat .num.blue{background:linear-gradient(135deg,#38bdf8,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat .lbl{font-size:.7rem;font-weight:700;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.6px}
+/* POST CARDS */
+.post{background:linear-gradient(165deg,rgba(255,255,255,.06),rgba(255,255,255,.015));border:1px solid rgba(251,191,36,.16);border-radius:18px;padding:16px;margin-bottom:12px;animation:fadeUp .4s ease}
+.post .p-type{display:inline-block;padding:4px 12px;border-radius:14px;font-size:.72rem;font-weight:700;margin-bottom:8px}
+.post .p-type.daily{background:rgba(251,191,36,.13);color:#fcd34d;border:1px solid rgba(251,191,36,.3)}
+.post .p-type.engage{background:rgba(56,189,248,.12);color:#38bdf8;border:1px solid rgba(56,189,248,.3)}
+.post .p-type.promo{background:rgba(167,139,250,.12);color:#c4b5fd;border:1px solid rgba(167,139,250,.3)}
+.post .p-type.value{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.3)}
+.post .p-body{font-size:.92rem;line-height:1.6;white-space:pre-wrap;background:rgba(0,0,0,.25);border-radius:12px;padding:14px;margin:8px 0}
+.post .p-actions{display:flex;gap:8px;flex-wrap:wrap}
+.post .p-actions button{margin:0}
+/* MEMBER ROWS */
+.member{background:linear-gradient(165deg,rgba(255,255,255,.05),rgba(255,255,255,.015));border:1px solid rgba(251,191,36,.14);border-radius:16px;padding:14px;margin-bottom:10px;animation:fadeUp .35s ease}
+.member .m-top{display:flex;justify-content:space-between;align-items:center}
+.member .m-name{font-weight:700}
+.member .m-tier{font-size:.72rem;font-weight:800;padding:4px 12px;border-radius:14px}
+.tier-free{background:rgba(154,147,181,.15);color:#9a93b5;border:1px solid rgba(154,147,181,.3)}
+.tier-premium{background:rgba(56,189,248,.13);color:#38bdf8;border:1px solid rgba(56,189,248,.35)}
+.tier-vip{background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(249,115,22,.1));color:#fcd34d;border:1px solid rgba(251,191,36,.45)}
+.member .m-meta{font-size:.8rem;color:var(--muted);margin-top:6px}
+.member .m-eng{margin-top:8px}
+.eng-bar{height:8px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;margin-top:4px}
+.eng-bar>div{height:100%;border-radius:5px;background:linear-gradient(90deg,#d97706,#4ade80);transition:width .6s ease}
+.ghost-tag{display:inline-block;font-size:.72rem;font-weight:700;color:var(--red);background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:12px;padding:3px 10px;margin-top:6px}
+.active-tag{display:inline-block;font-size:.72rem;font-weight:700;color:var(--green);background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);border-radius:12px;padding:3px 10px;margin-top:6px}
+/* GAME CARDS */
+.game{background:linear-gradient(165deg,rgba(167,139,250,.08),rgba(167,139,250,.02));border:1px solid rgba(167,139,250,.25);border-radius:18px;padding:16px;margin-bottom:12px;animation:fadeUp .4s ease}
+.game .g-title{font-weight:800;font-size:.95rem;color:#c4b5fd;margin-bottom:6px}
+.game .g-desc{font-size:.86rem;color:var(--muted);line-height:1.55;margin-bottom:8px}
+.game .g-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:.76rem;color:var(--muted)}
+/* PROMPT */
+.prompt{background:rgba(109,40,217,.07);border:1px solid rgba(139,92,246,.28);border-radius:16px;padding:16px;margin-bottom:12px;animation:fadeUp .35s ease}
+.prompt .p-title{font-weight:700;font-size:.9rem;color:#c4b5fd;margin-bottom:8px}
+.prompt .p-text{background:rgba(0,0,0,.35);border-radius:12px;padding:12px;font-size:.82rem;line-height:1.55;color:#d8ccf0;font-family:ui-monospace,monospace;white-space:pre-wrap;max-height:200px;overflow-y:auto}
+/* LEADERBOARD */
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid rgba(255,255,255,.06);animation:fadeUp .3s ease}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-size:1.3rem;font-weight:800;min-width:36px;text-align:center}
+.lb-name{flex:1;font-weight:600}
+.lb-pts{font-weight:800;color:#fcd34d}
+.spinner{width:40px;height:40px;margin:20px auto;border:4px solid rgba(251,191,36,.2);border-top-color:#fbbf24;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-badge{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:700;color:#c4b5fd;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.35);border-radius:12px;padding:4px 12px;margin-bottom:10px}
+.day-pill{display:inline-block;padding:8px 18px;margin:4px;border-radius:20px;font-size:.82rem;font-weight:700;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted);transition:all .2s}
+.day-pill.active{background:linear-gradient(135deg,#d97706,#7c3aed);color:#fff;border:none;box-shadow:0 4px 16px rgba(217,119,6,.35)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const K="skoolpilot_v1";
+function load(){try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return{}}}
+function save(){localStorage.setItem(K,JSON.stringify(DB))}
+let DB=load();
+DB.members=DB.members||[];DB.posts=DB.posts||[];DB.projects=DB.projects||[];DB.challenges=DB.challenges||[];
+let tab="today";
+
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function todayStr(){return new Date().toISOString().slice(0,10)}
+function fmtDate(d){return new Date(d+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})}
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+/* ============ AI ============ */
+async function aiGen(system,user,maxT){
+  if(!DB.groqKey)return null;
+  try{
+    const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+DB.groqKey},
+      body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[{role:"system",content:system},{role:"user",content:user}],temperature:.85,max_tokens:maxT||600})});
+    const j=await r.json();return j.choices[0].message.content.trim();
+  }catch(e){return null}
+}
+const POST_TYPES={
+  daily:{label:"📌 Daily Post",color:"daily"},
+  engage:{label:"💬 Engagement",color:"engage"},
+  value:{label:"💎 Value Drop",color:"value"},
+  promo:{label:"🚀 Promo",color:"promo"}
+};
+function localPost(type){
+  const t=DB.topic;
+  const bank={
+    daily:[`Good morning! ☀️ What's ONE thing you're working on today in ${t}?\n\nDrop it below. Saying it out loud makes it real. 👇`,
+    `Quick check-in: rate your week so far 1-10 and tell me why.\n\nNo wrong answers. Let's see where everyone's at. 📊`,
+    `What's the biggest win you had this week? Big or small, I want to celebrate it with you. 🎉👇`],
+    engage:[`Unpopular opinion about ${t}: I'll go first...\n\n[Share yours below - the spicier the better 🌶️]`,
+    `If you could ask me anything about ${t}, what would it be?\n\nTop 3 questions get a full breakdown post this week. 👇`,
+    `Fill in the blank:\n\n"The hardest part about ${t} is ________."\n\nLet's crowdsource solutions in the replies. 💡`],
+    value:[`I just learned something about ${t} that changed how I think about it:\n\n[Share your insight here - teach the community something]\n\nSave this post. You'll want it later. 📌`,
+    `Free resource drop 🎁\n\n[Share a template, checklist, or guide related to ${t}]\n\nThis is the kind of stuff people pay for elsewhere.`,
+    `3 mistakes I see everyone making with ${t}:\n\n1. [Mistake]\n2. [Mistake]\n3. [Mistake]\n\nWhich one are you guilty of? Be honest 👇`],
+    promo:[`🚀 Quick announcement:\n\n[Your offer/update here]\n\nFor ${t} people who are serious about results. DM me if you want in.`,
+    `I'm opening up [X spots] for [offer].\n\nIf you're in ${t} and want [result], this is for you.\n\nComment "ME" and I'll send details. 👇`]
+  };
+  const arr=bank[type]||bank.daily;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+const GAME_IDEAS=[
+ {t:"🔥 7-Day Streak Challenge",d:"Post one win every day for 7 days straight. Miss a day, start over. Finishers get a special role/badge.",pts:"Engagement + retention"},
+ {t:"🏆 Monthly Leaderboard Race",d:"Top 3 most helpful members each month get featured + a reward. Points for posts, comments, and helping others.",pts:"Competition + status"},
+ {t:"🎯 Accountability Pods",d:"Groups of 3-4 matched by goal. Weekly check-ins. Pod with highest completion rate wins.",pts:"Belonging + accountability"},
+ {t:"📸 Transformation Showcase",d:"Before/after thread. Members post their progress with proof. Community votes on most inspiring.",pts:"Social proof + motivation"},
+ {t:"❓ Weekly AMA / Hot Seat",d:"One member per week gets the spotlight. Everyone asks questions. Builds deep connections fast.",pts:"Connection + authority"},
+ {t:"🎲 Spin-the-Wheel Rewards",d:"Active members get weekly wheel spins for perks: shoutouts, bonus content, 1-on-1 time.",pts:"Variable rewards + dopamine"},
+ {t:"📚 Course Completion Race",d:"First 10 to finish the classroom course get a 'Graduate' badge + bonus unlock.",pts:"Course completion + urgency"},
+ {t:"🤝 Bring-a-Friend Week",d:"Members invite one person. Both get bonus points. Fastest way to grow with warm leads.",pts:"Viral growth + rewards"},
+];
+
+/* ============ VIEWS ============ */
+function render(){
+  const app=document.getElementById("app");
+  if(!DB.topic){app.innerHTML=setupView();return}
+  const tabs=[["today","🏠 Today"],["posts","✍️ Posts"],["members","👥 Members"],["game","🎮 Game"],["projects","📁 Projects"],["money","💰 Money"],["prompts","🤖 Prompts"]];
+  app.innerHTML=`<div class="hdr"><div class="logo"><span class="s">Skool</span><span class="p">Pilot</span></div>
+  <div class="tag">${esc(DB.community||"Your Community")}</div><div><span class="comm-badge">🎯 ${esc(DB.topic)}</span></div></div>
+  <div class="tabs">${tabs.map(t=>`<button class="${tab===t[0]?"active":""}" onclick="tab='${t[0]}';render()">${t[1]}</button>`).join("")}</div>
+  <div id="panel"></div>
+  <div style="text-align:center;margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="back" onclick="tab='settings';render()">⚙️ Settings</button><button class="back" onclick="if(confirm('Reset everything?')){DB={};save();render()}">Reset</button></div>`;
+  const p=document.getElementById("panel");
+  if(tab==="today")p.innerHTML=todayView();
+  else if(tab==="posts")p.innerHTML=postsView();
+  else if(tab==="members")p.innerHTML=membersView();
+  else if(tab==="game")p.innerHTML=gameView();
+  else if(tab==="projects")p.innerHTML=projectsView();
+  else if(tab==="money")p.innerHTML=moneyView();
+  else if(tab==="prompts")p.innerHTML=promptsView();
+  else if(tab==="settings")p.innerHTML=settingsView();
+}
+function setupView(){
+  return `<div class="hdr"><div class="logo"><span class="s">Skool</span><span class="p">Pilot</span></div><div class="tag">Your community command center</div></div>
+  <div class="card"><h2>🚀 Set Up Your Community</h2>
+  <p class="desc">Enter your community topic and this dashboard builds your content engine: daily posts, gamification ideas, member tracking, and revenue.</p>
+  <label>Community name</label><input id="sName" placeholder="e.g. Verify with AI">
+  <label>Community topic / niche</label><input id="sTopic" placeholder="e.g. AI business automation, fitness for moms...">
+  <div class="row2"><div><label>Premium price ($/mo)</label><input id="sPremPrice" type="number" value="19"></div><div><label>VIP price ($/mo)</label><input id="sVipPrice" type="number" value="149"></div></div>
+  <label>Groq API key <span style="text-transform:none;letter-spacing:0">(optional, free - unlocks real AI posts)</span></label><input id="sKey" type="password" placeholder="gsk_...">
+  <button class="btn" onclick="doSetup()">Build My Dashboard →</button></div>`;
+}
+function doSetup(){
+  const t=document.getElementById("sTopic").value.trim();
+  if(!t){alert("Enter your topic");return}
+  DB.community=document.getElementById("sName").value.trim()||"My Community";
+  DB.topic=t;DB.premPrice=+document.getElementById("sPremPrice").value||19;
+  DB.vipPrice=+document.getElementById("sVipPrice").value||149;
+  DB.groqKey=document.getElementById("sKey").value.trim();
+  save();tab="today";render();
+}
+
+/* --- TODAY --- */
+function todayView(){
+  const t=todayStr(),day=DAYS[(new Date().getDay()+6)%7];
+  const todaysPost=DB.posts.find(p=>p.forDate===t);
+  const m=DB.members;
+  const free=m.filter(x=>x.tier==="free").length,prem=m.filter(x=>x.tier==="premium").length,vip=m.filter(x=>x.tier==="vip").length;
+  const ghosts=m.filter(x=>(x.engagement||0)<3).length;
+  const mrr=prem*(DB.premPrice||0)+vip*(DB.vipPrice||0);
+  const activeChal=DB.challenges.filter(c=>!c.done);
+  return `<div class="stat-grid">
+    <div class="stat"><div class="num">${m.length}</div><div class="lbl">Members</div></div>
+    <div class="stat"><div class="num green">$${mrr}</div><div class="lbl">MRR</div></div>
+    <div class="stat"><div class="num purple">${activeChal.length}</div><div class="lbl">Active games</div></div>
+    <div class="stat"><div class="num blue">${ghosts}</div><div class="lbl">Going ghost</div></div>
+  </div>
+  <div class="card"><h2>📅 Today is ${day}</h2>
+  ${todaysPost?`<div class="post"><span class="p-type ${POST_TYPES[todaysPost.type].color}">${POST_TYPES[todaysPost.type].label}</span><div class="p-body">${esc(todaysPost.body)}</div><div class="p-actions"><button class="btn copy small" id="copyTodayBtn">📋 Copy</button><button class="btn ghost small" onclick="regenToday()">↻ Regenerate</button></div></div>`
+  :`<p class="desc">No post generated for today yet.</p><button class="btn" onclick="genTodayPost()">✍️ Generate Today's Post</button>`}
+  </div>
+  ${activeChal.length?`<div class="card"><h2>🎮 Running Now</h2>${activeChal.map(c=>`<div class="game"><div class="g-title">${esc(c.title)}</div><div class="g-desc">${esc(c.desc)}</div></div>`).join("")}</div>`:""}
+  <div class="card"><h2>⚡ Quick Actions</h2>
+  <button class="btn small" onclick="tab='posts';render()">✍️ Write a post</button>
+  <button class="btn small" onclick="tab='members';render()">👥 Check members</button>
+  <button class="btn small" onclick="tab='game';render()">🎮 Launch a game</button></div>`;
+}
+async function genTodayPost(){
+  const p=document.getElementById("panel");
+  p.innerHTML=`<div class="card" style="text-align:center"><div class="ai-badge">🤖 ${DB.groqKey?"AI writing":"Smart generator"}</div><div class="spinner"></div><p class="desc">Writing today's post...</p></div>`;
+  const types=["daily","engage","value"];
+  const type=types[new Date().getDate()%3];
+  let body=await aiGen(`You write engaging Skool community posts. Keep them short, conversational, with emojis. No hashtags.`,
+    `Write a ${type} post for a Skool community about "${DB.topic}". ${type==="daily"?"It's a morning check-in post.":type==="engage"?"It's designed to spark discussion and comments.":"It delivers real value/teaching."} Keep it under 120 words.`);
+  if(!body)body=localPost(type);
+  DB.posts=DB.posts.filter(x=>x.forDate!==todayStr());
+  DB.posts.push({id:Date.now().toString(),type,body,forDate:todayStr(),used:true});
+  save();render();
+}
+function regenToday(){DB.posts=DB.posts.filter(x=>x.forDate!==todayStr());save();genTodayPost()}
+document.addEventListener("click",function(e){
+  if(e.target&&e.target.id==="copyTodayBtn"){
+    const p=DB.posts.find(x=>x.forDate===todayStr());
+    if(p)copyText(p.body,e.target);
+  }
+});
+function copyText(t,btn){
+  navigator.clipboard.writeText(t).then(()=>{const o=btn.textContent;btn.textContent="✅ Copied!";setTimeout(()=>btn.textContent=o,1500)});
+}
+
+/* --- POSTS --- */
+function postsView(){
+  const sorted=[...DB.posts].sort((a,b)=>(b.forDate||"").localeCompare(a.forDate||"")).slice(0,20);
+  return `<div class="card"><h2>✍️ Post Generator</h2>
+  <p class="desc">${DB.groqKey?"Real AI writing for your niche.":"Add a Groq key in settings for real AI, or use smart templates."}</p>
+  <label>Post type</label><select id="ptType"><option value="daily">📌 Daily Post</option><option value="engage">💬 Engagement Bait</option><option value="value">💎 Value Drop</option><option value="promo">🚀 Promo / Announcement</option></select>
+  <button class="btn" onclick="genPost()">🤖 Generate Post</button><div id="genPost"></div></div>
+  <div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:16px 4px 10px;text-transform:uppercase;letter-spacing:1px">Recent posts (${sorted.length})</div>
+  ${sorted.map(p=>`<div class="post"><span class="p-type ${POST_TYPES[p.type].color}">${POST_TYPES[p.type].label}</span> <span style="font-size:.75rem;color:var(--muted)">${p.forDate?fmtDate(p.forDate):""}</span><div class="p-body">${esc(p.body)}</div><div class="p-actions"><button class="btn copy small" onclick='copyText(${JSON.stringify(p.body)},this)'>📋 Copy</button><button class="btn ghost small" onclick="delPost('${p.id}')">Delete</button></div></div>`).join("")||'<div class="empty">No posts yet. Generate one above!</div>'}`;
+}
+async function genPost(){
+  const area=document.getElementById("genPost");
+  const type=document.getElementById("ptType").value;
+  area.innerHTML=`<div style="text-align:center;padding:14px"><div class="spinner"></div></div>`;
+  let body=await aiGen(`You write engaging Skool community posts. Short, conversational, emojis ok. No hashtags.`,
+    `Write a ${type} post for a Skool community about "${DB.topic}". Keep under 150 words.`);
+  if(!body)body=localPost(type);
+  const post={id:Date.now().toString(),type,body,forDate:"",used:false};
+  DB.posts.unshift(post);save();
+  area.innerHTML=`<div class="post" style="margin-top:12px"><span class="p-type ${POST_TYPES[type].color}">${POST_TYPES[type].label}</span><div class="p-body">${esc(body)}</div><div class="p-actions"><button class="btn copy small" onclick='copyText(${JSON.stringify(body)},this)'>📋 Copy Post</button></div></div>`;
+  setTimeout(render,800);
+}
+function delPost(id){if(confirm("Delete?")){DB.posts=DB.posts.filter(p=>p.id!==id);save();render()}}
+
+/* --- MEMBERS --- */
+function membersView(){
+  const m=DB.members;
+  const sorted=[...m].sort((a,b)=>(b.engagement||0)-(a.engagement||0));
+  const tiers={free:m.filter(x=>x.tier==="free").length,premium:m.filter(x=>x.tier==="premium").length,vip:m.filter(x=>x.tier==="vip").length};
+  return `<div class="stat-grid">
+    <div class="stat"><div class="num">${tiers.free}</div><div class="lbl">🆓 Free</div></div>
+    <div class="stat"><div class="num blue">${tiers.premium}</div><div class="lbl">⭐ Premium</div></div>
+    <div class="stat"><div class="num">${tiers.vip}</div><div class="lbl">👑 VIP</div></div>
+    <div class="stat"><div class="num green">${m.length}</div><div class="lbl">Total</div></div>
+  </div>
+  <div class="card"><h2>+ Add Member</h2>
+  <label>Name</label><input id="mName" placeholder="Member name">
+  <div class="row2"><div><label>Tier</label><select id="mTier"><option value="free">🆓 Free</option><option value="premium">⭐ Premium</option><option value="vip">👑 VIP</option></select></div>
+  <div><label>Engagement (1-10)</label><input id="mEng" type="number" min="1" max="10" value="5"></div></div>
+  <label>Notes</label><input id="mNotes" placeholder="Where they came from, interests...">
+  <button class="btn" onclick="addMember()">Add Member</button></div>
+  <div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:16px 4px 10px;text-transform:uppercase;letter-spacing:1px">Members by engagement (${sorted.length})</div>
+  ${sorted.map(x=>{const e=x.engagement||5;
+  return `<div class="member"><div class="m-top"><span class="m-name">${esc(x.name)}</span><span class="m-tier tier-${x.tier}">${x.tier==="free"?"🆓 Free":x.tier==="premium"?"⭐ Premium":"👑 VIP"}</span></div>
+  ${x.notes?`<div class="m-meta">${esc(x.notes)}</div>`:""}
+  <div class="m-eng"><div style="font-size:.76rem;color:var(--muted)">Engagement: ${e}/10</div><div class="eng-bar"><div style="width:${e*10}%"></div></div></div>
+  ${e<3?'<span class="ghost-tag">👻 Going ghost - reach out!</span>':e>=8?'<span class="active-tag">🔥 Super active</span>':""}
+  <div style="margin-top:8px"><button class="btn ghost small" style="margin:0" onclick="bumpEng('${x.id}',1)">+</button><button class="btn ghost small" style="margin:0" onclick="bumpEng('${x.id}',-1)">−</button><button class="btn ghost small" style="margin:0" onclick="cycleTier('${x.id}')">Change tier</button><button class="btn ghost small" style="margin:0;color:var(--red)" onclick="delMember('${x.id}')">Remove</button></div></div>`}).join("")||'<div class="empty">No members yet. Add your first one above!</div>'}`;
+}
+function addMember(){
+  const n=document.getElementById("mName").value.trim();
+  if(!n){alert("Enter a name");return}
+  DB.members.push({id:Date.now().toString(),name:n,tier:document.getElementById("mTier").value,engagement:+document.getElementById("mEng").value||5,notes:document.getElementById("mNotes").value.trim(),joined:todayStr()});
+  save();render();
+}
+function bumpEng(id,d){const x=DB.members.find(m=>m.id===id);x.engagement=Math.max(1,Math.min(10,(x.engagement||5)+d));save();render()}
+function cycleTier(id){const x=DB.members.find(m=>m.id===id);x.tier=x.tier==="free"?"premium":x.tier==="premium"?"vip":"free";save();render()}
+function delMember(id){if(confirm("Remove?")){DB.members=DB.members.filter(m=>m.id!==id);save();render()}}
+
+/* --- GAMIFICATION --- */
+function gameView(){
+  const active=DB.challenges.filter(c=>!c.done),done=DB.challenges.filter(c=>c.done);
+  const top=[...DB.members].sort((a,b)=>(b.engagement||0)-(a.engagement||0)).slice(0,10);
+  return `<div class="card"><h2>🎮 Gamification Ideas</h2><p class="desc">Proven engagement mechanics for Skool communities. Tap "Launch" to start tracking one.</p>
+  ${GAME_IDEAS.map((g,i)=>`<div class="game"><div class="g-title">${esc(g.t)}</div><div class="g-desc">${esc(g.d)}</div><div class="g-meta"><span>🎯 ${esc(g.pts)}</span></div><button class="btn small" onclick="launchGame(${i})">🚀 Launch This</button></div>`).join("")}</div>
+  ${top.length?`<div class="card"><h2>🏆 Leaderboard</h2><p class="desc">Top members by engagement. Update scores in the Members tab.</p>${top.map((x,i)=>`<div class="lb-row"><div class="lb-rank">${i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)}</div><div class="lb-name">${esc(x.name)}</div><div class="lb-pts">${x.engagement||0} pts</div></div>`).join("")}</div>`:""}
+  ${active.length?`<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:16px 4px 10px;text-transform:uppercase;letter-spacing:1px">Running (${active.length})</div>`+active.map(c=>`<div class="game"><div class="g-title">${esc(c.title)}</div><div class="g-desc">${esc(c.desc)}</div><button class="btn ghost small" onclick="doneGame('${c.id}')">Mark Done</button></div>`).join(""):""}
+  ${done.length?`<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:16px 4px 10px;text-transform:uppercase;letter-spacing:1px">Completed (${done.length})</div>`+done.map(c=>`<div class="game" style="opacity:.5"><div class="g-title">✅ ${esc(c.title)}</div></div>`).join(""):""}`;
+}
+function launchGame(i){const g=GAME_IDEAS[i];DB.challenges.push({id:Date.now().toString(),title:g.t,d:esc(g.d),desc:g.d,done:false,launched:todayStr()});save();tab="game";render()}
+function doneGame(id){const c=DB.challenges.find(x=>x.id===id);if(c){c.done=true;save();render()}}
+
+/* --- PROJECTS --- */
+function projectsView(){
+  const open=DB.projects.filter(p=>p.status!=="done"),done=DB.projects.filter(p=>p.status==="done");
+  return `<div class="card"><h2>📁 New Project</h2>
+  <label>Project name</label><input id="pjName" placeholder="e.g. Launch paid tier, 30-day challenge...">
+  <label>Description</label><textarea id="pjDesc" placeholder="What needs to happen?"></textarea>
+  <label>Deadline</label><input id="pjDate" type="date">
+  <button class="btn" onclick="addProject()">+ Add Project</button></div>
+  <div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:16px 4px 10px;text-transform:uppercase;letter-spacing:1px">Active (${open.length})</div>
+  ${open.map(p=>`<div class="post"><div class="p-type daily">${p.deadline?"📅 "+fmtDate(p.deadline):"📌 No deadline"}</div><div style="font-weight:700;margin:6px 0">${esc(p.name)}</div>${p.desc?`<div style="font-size:.86rem;color:var(--muted);line-height:1.5">${esc(p.desc)}</div>`:""}<div class="p-actions"><button class="btn small" onclick="doneProject('${p.id}')">✅ Done</button><button class="btn ghost small" onclick="delProject('${p.id}')">Delete</button></div></div>`).join("")||'<div class="empty">No active projects.</div>'}
+  ${done.length?`<div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:16px 4px 10px;text-transform:uppercase;letter-spacing:1px">Done (${done.length})</div>`+done.map(p=>`<div class="post" style="opacity:.5"><div style="font-weight:700">✅ ${esc(p.name)}</div></div>`).join(""):""}`;
+}
+function addProject(){
+  const n=document.getElementById("pjName").value.trim();
+  if(!n){alert("Name it");return}
+  DB.projects.push({id:Date.now().toString(),name:n,desc:document.getElementById("pjDesc").value.trim(),deadline:document.getElementById("pjDate").value,status:"open"});
+  save();render();
+}
+function doneProject(id){DB.projects.find(p=>p.id===id).status="done";save();render()}
+function delProject(id){if(confirm("Delete?")){DB.projects=DB.projects.filter(p=>p.id!==id);save();render()}}
+
+/* --- MONEY --- */
+function moneyView(){
+  const m=DB.members;
+  const free=m.filter(x=>x.tier==="free").length,prem=m.filter(x=>x.tier==="premium").length,vip=m.filter(x=>x.tier==="vip").length;
+  const pp=DB.premPrice||0,vp=DB.vipPrice||0;
+  const mrr=prem*pp+vip*vp;
+  const conv=m.length?Math.round((prem+vip)/m.length*100):0;
+  return `<div class="stat-grid">
+    <div class="stat"><div class="num green">$${mrr}</div><div class="lbl">Monthly revenue</div></div>
+    <div class="stat"><div class="num">$${mrr*12}</div><div class="lbl">Annual run rate</div></div>
+    <div class="stat"><div class="num purple">${conv}%</div><div class="lbl">Free → paid</div></div>
+    <div class="stat"><div class="num blue">${m.length?Math.round(mrr/m.length):0}</div><div class="lbl">$ per member</div></div>
+  </div>
+  <div class="card"><h2>💰 Revenue Breakdown</h2>
+  <div style="font-size:.9rem;line-height:2">
+  <div>🆓 Free: <b>${free}</b> members × $0 = <b>$0</b></div>
+  <div>⭐ Premium: <b>${prem}</b> members × $${pp} = <b style="color:var(--green)">$${prem*pp}</b></div>
+  <div>👑 VIP: <b>${vip}</b> members × $${vp} = <b style="color:var(--green)">$${vip*vp}</b></div>
+  <div style="border-top:1px solid rgba(255,255,255,.1);margin-top:8px;padding-top:8px">Total MRR: <b style="color:var(--green);font-size:1.2rem">$${mrr}</b></div></div></div>
+  <div class="card"><h2>🎯 Growth Math</h2><p class="desc">What happens if you grow?</p>
+  <label>Target members</label><input id="gTarget" type="number" value="${m.length+50}">
+  <label>Expected paid %</label><input id="gConv" type="number" value="${conv||10}">
+  <button class="btn" onclick="growthCalc()">Calculate</button><div id="gOut" style="margin-top:12px"></div></div>`;
+}
+function growthCalc(){
+  const t=+document.getElementById("gTarget").value||0,c=+document.getElementById("gConv").value||10;
+  const paid=Math.round(t*c/100),pp=DB.premPrice||0;
+  document.getElementById("gOut").innerHTML=`<div class="stat"><div class="num green">$${(paid*pp).toFixed(0)}</div><div class="lbl">Projected MRR at ${t} members</div></div><p class="desc" style="margin-top:8px">${paid} paying × $${pp}/mo (assumes premium tier)</p>`;
+}
+
+/* --- PROMPTS --- */
+function promptLib(){
+  const t=DB.topic;
+  return [
+   {t:"📝 Weekly Content Plan",p:`Create a 7-day Skool community content plan for my community about "${t}".\n\nFor each day give me:\n- Post type (question, value drop, challenge, poll)\n- The actual post text (ready to copy-paste)\n- Why this post drives engagement\n\nMix educational, fun, and community-building posts.`},
+   {t:"💬 Engagement Rescue Post",p:`My Skool community about "${t}" has gone quiet. Write 5 "pattern interrupt" posts designed to get lurkers commenting.\n\nMake them:\n- Controversial but not offensive\n- Easy to answer in one sentence\n- Personal (people love sharing opinions)\n\nNo generic "what's your favorite..." questions.`},
+   {t:"👋 New Member Welcome Sequence",p:`Write a 3-message welcome sequence for new members joining my Skool community about "${t}".\n\nMessage 1: Welcome + what to do first (warm, exciting)\nMessage 2: (Day 2) Check-in + point to best content\nMessage 3: (Day 7) Ask for their first win or question\n\nTone: like a friend, not a corporation.`},
+   {t:"🎮 Custom Challenge Designer",p:`Design a 14-day engagement challenge for my Skool community about "${t}".\n\nInclude:\n- Challenge name (catchy!)\n- Daily tasks (simple, 5-min max)\n- Point system\n- Prize ideas (no-cost and low-cost)\n- How to announce it for maximum signups`},
+   {t:"📧 Win-Back DM for Ghost Members",p:`Write 3 DM templates to re-engage members who joined my "${t}" Skool community but went silent.\n\nTone progression:\n1. Warm check-in (no guilt)\n2. FOMO (what they're missing)\n3. Last chance (direct but kind)\n\nKeep each under 60 words. Sound human.`},
+   {t:"🚀 Paid Tier Launch Post",p:`Write a launch announcement for my new paid tier in my Skool community about "${t}".\n\nInclude:\n- What they're getting (specific benefits)\n- Why now (urgency without sleaze)\n- Social proof angle\n- Clear CTA\n\nMake it exciting, not salesy.`},
+  ];
+}
+function promptsView(){
+  return `<div class="card"><h2>🤖 Prompt Library</h2><p class="desc">Pre-filled with your topic: <b>${esc(DB.topic)}</b>. Copy, paste into any AI, done.</p></div>
+  ${promptLib().map((p,i)=>`<div class="prompt"><div class="p-title">${esc(p.t)}</div><div class="p-text" id="sp-${i}">${esc(p.p)}</div><button class="btn copy small" onclick="copyPrompt(${i})">📋 Copy Prompt</button></div>`).join("")}`;
+}
+function copyPrompt(i){
+  const t=document.getElementById("sp-"+i).textContent;
+  navigator.clipboard.writeText(t).then(()=>{event.target.textContent="✅ Copied!";setTimeout(()=>event.target.textContent="📋 Copy Prompt",1500)});
+}
+
+/* --- SETTINGS --- */
+function settingsView(){
+  return `<div class="card"><h2>⚙️ Settings</h2>
+  <label>Community name</label><input id="setName" value="${esc(DB.community||"")}">
+  <label>Topic</label><input id="setTopic" value="${esc(DB.topic||"")}">
+  <div class="row2"><div><label>Premium $/mo</label><input id="setPrem" type="number" value="${DB.premPrice||19}"></div><div><label>VIP $/mo</label><input id="setVip" type="number" value="${DB.vipPrice||149}"></div></div>
+  <label>Groq API key</label><input id="setKey" type="password" value="${esc(DB.groqKey||"")}">
+  <button class="btn" onclick="DB.community=document.getElementById('setName').value;DB.topic=document.getElementById('setTopic').value;DB.premPrice=+document.getElementById('setPrem').value;DB.vipPrice=+document.getElementById('setVip').value;DB.groqKey=document.getElementById('setKey').value;save();render()">Save</button></div>`;
+}
+render();
+</script>
+</body>
+</html>
