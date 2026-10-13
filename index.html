@@ -236,6 +236,7 @@ document.addEventListener("click",function(e){
 function copyText(t,btn){
   navigator.clipboard.writeText(t).then(()=>{const o=btn.textContent;btn.textContent="✅ Copied!";setTimeout(()=>btn.textContent=o,1500)});
 }
+function copyPostById(id,btn){const p=DB.posts.find(x=>x.id===id);if(p)copyText(p.body,btn);}
 
 /* --- POSTS --- */
 function postsView(){
@@ -249,7 +250,7 @@ function postsView(){
   <label>Post type</label><select id="ptType"><option value="daily">📌 Daily Post</option><option value="engage">💬 Engagement Bait</option><option value="value">💎 Value Drop</option><option value="promo">🚀 Promo / Announcement</option></select>
   <button class="btn" onclick="genPost()">🤖 Generate Post</button><div id="genPost"></div></div>
   <div style="font-size:.78rem;font-weight:800;color:var(--muted);margin:16px 4px 10px;text-transform:uppercase;letter-spacing:1px">Recent posts (${sorted.length})</div>
-  ${sorted.map(p=>`<div class="post"><span class="p-type ${POST_TYPES[p.type].color}">${POST_TYPES[p.type].label}</span> <span style="font-size:.75rem;color:var(--muted)">${p.forDate?fmtDate(p.forDate):""}</span>${p.game?`<div style="font-size:.78rem;color:#c4b5fd;margin:6px 0">🎮 Game that day: <b>${esc(p.game)}</b></div>`:""}<div class="p-body">${esc(p.body)}</div><div class="p-actions"><button class="btn copy small" onclick='copyText(${JSON.stringify(p.body)},this)'>📋 Copy</button><button class="btn ghost small" onclick="delPost('${p.id}')">Delete</button></div></div>`).join("")||'<div class="empty">No posts yet. Hit "Fill My Week" above!</div>'}`;
+  ${sorted.map(p=>`<div class="post"><span class="p-type ${POST_TYPES[p.type].color}">${POST_TYPES[p.type].label}</span> <span style="font-size:.75rem;color:var(--muted)">${p.forDate?fmtDate(p.forDate):""}</span>${p.game?`<div style="font-size:.78rem;color:#c4b5fd;margin:6px 0">🎮 Game that day: <b>${esc(p.game)}</b></div>`:""}<div class="p-body">${esc(p.body)}</div><div class="p-actions"><button class="btn copy small" onclick="copyPostById('${p.id}',this)">📋 Copy</button><button class="btn ghost small" onclick="delPost('${p.id}')">Delete</button></div></div>`).join("")||'<div class="empty">No posts yet. Hit "Fill My Week" above!</div>'}`;
 }
 async function fillSkoolWeek(){
   const area=document.getElementById("fillSkoolArea");
@@ -280,7 +281,7 @@ async function genPost(){
   if(!body)body=localPost(type);
   const post={id:Date.now().toString(),type,body,forDate:"",used:false};
   DB.posts.unshift(post);save();
-  area.innerHTML=`<div class="post" style="margin-top:12px"><span class="p-type ${POST_TYPES[type].color}">${POST_TYPES[type].label}</span><div class="p-body">${esc(body)}</div><div class="p-actions"><button class="btn copy small" onclick='copyText(${JSON.stringify(body)},this)'>📋 Copy Post</button></div></div>`;
+  area.innerHTML=`<div class="post" style="margin-top:12px"><span class="p-type ${POST_TYPES[type].color}">${POST_TYPES[type].label}</span><div class="p-body">${esc(body)}</div><div class="p-actions"><button class="btn copy small" onclick="copyPostById('${post.id}',this)">📋 Copy Post</button></div></div>`;
   setTimeout(render,800);
 }
 function delPost(id){if(confirm("Delete?")){DB.posts=DB.posts.filter(p=>p.id!==id);save();render()}}
@@ -398,11 +399,11 @@ function promptLib(){
 }
 function promptsView(){
   return `<div class="card"><h2>🤖 Prompt Library</h2><p class="desc">Pre-filled with your topic: <b>${esc(DB.topic)}</b>. Copy, paste into any AI, done.</p></div>
-  ${promptLib().map((p,i)=>`<div class="prompt"><div class="p-title">${esc(p.t)}</div><div class="p-text" id="sp-${i}">${esc(p.p)}</div><button class="btn copy small" onclick="copyPrompt(${i})">📋 Copy Prompt</button></div>`).join("")}`;
+  ${promptLib().map((p,i)=>`<div class="prompt"><div class="p-title">${esc(p.t)}</div><div class="p-text" id="sp-${i}">${esc(p.p)}</div><button class="btn copy small" onclick="copyPrompt(${i},this)">📋 Copy Prompt</button></div>`).join("")}`;
 }
-function copyPrompt(i){
+function copyPrompt(i,btn){
   const t=document.getElementById("sp-"+i).textContent;
-  navigator.clipboard.writeText(t).then(()=>{event.target.textContent="✅ Copied!";setTimeout(()=>event.target.textContent="📋 Copy Prompt",1500)});
+  navigator.clipboard.writeText(t).then(()=>{if(!btn)return;const o=btn.textContent;btn.textContent="✅ Copied!";setTimeout(()=>btn.textContent=o,1500)});
 }
 
 /* --- SETTINGS --- */
