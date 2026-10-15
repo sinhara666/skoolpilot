@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>try{if(!localStorage.getItem("sp_license_key")){document.documentElement.classList.add("locked")}}catch(e){document.documentElement.classList.add("locked")}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SkoolPilot - Community Command Center</title>
 <style>
@@ -87,9 +88,32 @@ textarea{resize:vertical;min-height:70px}
 .ai-badge{display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:700;color:#c4b5fd;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.35);border-radius:12px;padding:4px 12px;margin-bottom:10px}
 .day-pill{display:inline-block;padding:8px 18px;margin:4px;border-radius:20px;font-size:.82rem;font-weight:700;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted);transition:all .2s}
 .day-pill.active{background:linear-gradient(135deg,#d97706,#7c3aed);color:#fff;border:none;box-shadow:0 4px 16px rgba(217,119,6,.35)}
+
+/* LICENSE GATE */
+#lockScreen{display:none}
+html.locked #app{display:none}
+html.locked #lockScreen{display:block}
+.price-big{font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,#fbbf24,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+a.btn{display:block;text-align:center;text-decoration:none}
 </style>
 </head>
 <body>
+
+<div id="lockScreen">
+  <div class="hdr"><div class="logo"><span class="s">Skool</span><span class="p">Pilot</span></div>
+  <div class="tag">Your community command center</div></div>
+  <div class="card" style="text-align:center"><h2>SkoolPilot</h2>
+    <div class="price-big">$47</div>
+    <p class="desc" style="margin-top:6px">One time. Yours forever. No subscription, no monthly bill.</p>
+    <p class="desc">Daily posts written for your community, member tracking that flags who went quiet, games that keep people active, and your revenue at a glance. It runs on your device and your data stays yours.</p>
+    <a class="btn" href="https://buy.stripe.com/fZu3cudyJ38Q7cue8Te7m0e">Get SkoolPilot</a>
+  </div>
+  <div class="card"><h2>Already have your key?</h2>
+  <p class="desc">Your license key came with your purchase. Paste it here to open your command center.</p>
+  <label>License key</label><input id="licKey" placeholder="Paste your license key" autocomplete="off">
+  <button class="btn" id="unlockBtn">Unlock SkoolPilot</button>
+  <p class="desc" id="lockMsg" style="margin-top:10px;min-height:1.2em"></p></div>
+</div>
 <div id="app"></div>
 <script>
 const K="skoolpilot_v1";
@@ -416,6 +440,30 @@ function settingsView(){
   <button class="btn" onclick="DB.community=document.getElementById('setName').value;DB.topic=document.getElementById('setTopic').value;DB.premPrice=+document.getElementById('setPrem').value;DB.vipPrice=+document.getElementById('setVip').value;DB.groqKey=document.getElementById('setKey').value;save();render()">Save</button></div>`;
 }
 render();
+</script>
+
+<script>
+(function(){
+  var LS_KEY="sp_license_key", LS_INST="sp_install_id";
+  function inst(){var v=localStorage.getItem(LS_INST);if(!v){v="web-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,10);localStorage.setItem(LS_INST,v)}return v}
+  function verify(key){return fetch("https://simmons666.pythonanywhere.com/api/license/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key:key,product:"skoolpilot",install_id:inst()})}).then(function(r){return r.json()})}
+  function unlock(){document.documentElement.classList.remove("locked")}
+  function lock(){document.documentElement.classList.add("locked")}
+  function msg(t){var m=document.getElementById("lockMsg");if(m)m.textContent=t}
+  var saved=localStorage.getItem(LS_KEY);
+  if(saved){verify(saved).then(function(j){if(j&&j.valid){unlock()}else{localStorage.removeItem(LS_KEY);lock();msg("That saved key did not check out. Paste your key again to open SkoolPilot.")}}).catch(function(){unlock()})}
+  var btn=document.getElementById("unlockBtn");
+  if(btn)btn.addEventListener("click",function(){
+    var k=document.getElementById("licKey").value.trim().toUpperCase();
+    if(!k){msg("Paste your license key first.");return}
+    btn.textContent="Checking...";btn.disabled=true;
+    verify(k).then(function(j){
+      btn.textContent="Unlock SkoolPilot";btn.disabled=false;
+      if(j&&j.valid){localStorage.setItem(LS_KEY,k);unlock()}
+      else{msg("That key was not accepted. Make sure the whole key copied in, or use the key from your purchase email.")}
+    }).catch(function(){btn.textContent="Unlock SkoolPilot";btn.disabled=false;msg("Could not reach the license check. Check your connection and try again.")});
+  });
+})();
 </script>
 </body>
 </html>
