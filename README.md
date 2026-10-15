@@ -6,7 +6,7 @@ Daily posts written for your community, member tracking that flags who went quie
 
 **$47 one time. Yours forever. No subscription.**
 
-[Get SkoolPilot](https://buy.stripe.com/fZu3cudyJ38Q7cue8Te7m0e)
+[Get SkoolPilot](https://buy.stripe.com/eVqfZg8epcJq54mc0Le7m0j)
 
 Open it here: https://sinhara666.github.io/skoolpilot/
 
